@@ -1,6 +1,38 @@
-# .gitignore
+# Dependências
 node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build / Dist
 dist/
-.env           # ← IMPORTANTE!
-.env.local
-.env.production
+build/
+*.local
+
+# Ambiente
+.env
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+coverage/
+.nyc_output/
+
+# Vercel
+.vercel
+
+# Temporários
+*.tmp
+.cache/
