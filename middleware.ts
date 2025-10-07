@@ -1,35 +1,39 @@
-// middleware.ts
-import { NextRequest, NextResponse } from 'next/server';
+// A função de middleware é executada no Edge da Vercel e usa APIs padrão da web.
+export default function middleware(request: Request) {
+  const basicAuth = request.headers.get('authorization');
 
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
-};
+  // Lê as variáveis de ambiente configuradas na Vercel
+  const user = process.env.BASIC_AUTH_USER;
+  const pass = process.env.BASIC_AUTH_PASSWORD;
 
-export function middleware(req: NextRequest) {
-  const basicAuth = req.headers.get('authorization');
-  const url = req.nextUrl;
+  // Se as variáveis de ambiente não estiverem configuradas, permite o acesso
+  if (!user || !pass) {
+    return; 
+  }
 
   if (basicAuth) {
     const authValue = basicAuth.split(' ')[1];
-    const [user, pwd] = atob(authValue).split(':');
+    // A função atob() decodifica a string em base64
+    const [providedUser, providedPassword] = atob(authValue).split(':');
 
-    const validUser = process.env.BASIC_AUTH_USER;
-    const validPass = process.env.BASIC_AUTH_PASSWORD;
-
-    if (user === validUser && pwd === validPass) {
-      return NextResponse.next();
+    if (providedUser === user && providedPassword === pass) {
+      // Se o usuário e senha estiverem corretos, a função termina e 
+      // o acesso à página é permitido.
+      return;
     }
   }
 
-  url.pathname = '/api/auth';
-  return NextResponse.rewrite(url);
+  // Se a autenticação falhar ou não for fornecida, retorna uma resposta 401
+  // para solicitar as credenciais ao navegador.
+  return new Response('Auth required', {
+    status: 401,
+    headers: {
+      'WWW-Authenticate': 'Basic realm="Secure Area"',
+    },
+  });
 }
+
+// Configuração para o middleware rodar em todas as rotas do seu site.
+export const config = {
+  matcher: '/:path*',
+};
